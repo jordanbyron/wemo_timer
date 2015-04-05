@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'wemo'
+require 'retryable'
+
+LightNotFoundError = Class.new(StandardError)
+
+Retryable.retryable(:sleep => lambda { |n| 4**n }, :tries => 4,
+                    :on => LightNotFoundError) do |retries, exception|
+  light = WeMo.all.find {|s| s.name[/#{ARGV[0]}/] }
+  on = ARGV[1] == "on"
+
+  if light
+    light.send(on ? :on : :off)
+    puts "#{light.name} #{on ? 'on' : 'off'}"
+  else
+    WeMo.instance_variable_set(:@switches, nil)
+    WeMo.instance_variable_set(:@light_switches, nil)
+    raise LightNotFoundError.new("Can't find light #{ARGV[0]}")
+  end
+end

@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+
+# module Playful
+#   extend self
+#   attr_accessor :log_class_name
+# end
+
+require 'bundler/setup'
+require 'wemo'
+
+sunroom  = WeMo.all.find {|s| s.name[/Sunroom/] }
+basement = WeMo.all.find {|s| s.name[/Basement/] }
+
+on = sunroom.status
+
+loop do
+  # puts "Last status: #{on}"
+  # puts "Current status: #{sunroom.status}"
+  if on && !sunroom.status
+    basement.off
+    on = false
+  elsif !on && sunroom.status
+    basement.on
+    on = true
+  end
+
+  sleep 10
+end
